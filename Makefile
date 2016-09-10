@@ -10,9 +10,13 @@ LIBS := $(shell pkg-config --libs apr-1)
 
 all: $(TARGET)
 
-$(TARGET): $(SRCDIR)/main.c
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
+$(TARGET): $(SRCDIR)/main.o $(SRCDIR)/skinny_proto.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+
+$(SRCDIR)/main.o: $(SRCDIR)/main.c $(SRCDIR)/skinny_proto.h
+
+$(SRCDIR)/skinny_proto.o: $(SRCDIR)/skinny_proto.c $(SRCDIR)/skinny_proto.h
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(SRCDIR)/*.o
