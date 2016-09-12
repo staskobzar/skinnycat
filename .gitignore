@@ -2,4 +2,6 @@
 *.swo
 *~
 *.o
+doc/html
+apr-1.5.2
 bin/skinnycat

@@ -1,22 +1,41 @@
 #
-# skinnycat
+# Makefile
 #
-SRCDIR := src
-TARGET := bin/skinnycat
+# PROJECT:      skinnycat
+# DESCRIPTION:  Small shell utility providing basic Skinny Cisco
+#               protocol messages exchange
+#
+# Copyright (C) 2016 Stas Kobzat <stas@modulis.ca>
+#
 
-CFLAGS := -g -Wall $(shell pkg-config --cflags apr-1)
-LIBS := $(shell pkg-config --libs apr-1)
+PROJECT   :=  skinnycat
+PKG_CFG   :=  $(shell which pkg-config)
+TARGET    := bin/$(PROJECT)
+BUILDDIR  := build
+SRCDIR    := src
+DOCS      := doc
 
+ifndef PKG_CFG
+  $(error Not found pkg-config utility.\
+          Install pkg-config package before continue)
+endif
 
-all: $(TARGET)
+include src/Makefile
 
-$(TARGET): $(SRCDIR)/main.o $(SRCDIR)/skinny_proto.o
-	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
+include tests/Makefile
 
-$(SRCDIR)/main.o: $(SRCDIR)/main.c $(SRCDIR)/skinny_proto.h
+.PHONY: doc
+doc:
+	@doxygen $(DOCS)/Doxygen
+	@echo "Documentation generated."
 
-$(SRCDIR)/skinny_proto.o: $(SRCDIR)/skinny_proto.c $(SRCDIR)/skinny_proto.h
+.PHONY: ctags
+# generate ctags for vim IDE
+# requires apr-1 source in root
+ctags:
+	@ctags -R src apr-1.5.2
 
 .PHONY: clean
-clean:
-	rm -f $(TARGET) $(SRCDIR)/*.o
+clean: test_clean
+	rm -f $(BUILDDIR)/*.o $(TARGET)
+	rm -rf $(DOCS)/html
