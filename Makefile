@@ -7,6 +7,12 @@
 #
 # Copyright (C) 2016 Stas Kobzat <stas@modulis.ca>
 #
+# TARGETS:
+#   all
+#   test
+#   ctags
+#   doc
+#   clean
 
 PROJECT   :=  skinnycat
 PKG_CFG   :=  $(shell which pkg-config)
@@ -33,6 +39,9 @@ doc:
 # generate ctags for vim IDE
 # requires apr-1 source in root
 ctags:
+	@test ! -d apr-1.5.2 && \
+		wget http://apache.mirror.iweb.ca//apr/apr-1.5.2.tar.gz && \
+		tar xfz apr-1.5.2.tar.gz && rm apr-1.5.2.tar.gz
 	@ctags -R src apr-1.5.2
 
 .PHONY: clean
