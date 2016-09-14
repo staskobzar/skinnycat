@@ -36,13 +36,14 @@ doc:
 	@echo "Documentation generated."
 
 .PHONY: ctags
-# generate ctags for vim IDE
+# generate ctags for vim
 # requires apr-1 source in root
 ctags:
+	@echo "Building tags"
 	@test ! -d apr-1.5.2 && \
 		wget http://apache.mirror.iweb.ca//apr/apr-1.5.2.tar.gz && \
-		tar xfz apr-1.5.2.tar.gz && rm apr-1.5.2.tar.gz
-	@ctags -R src apr-1.5.2
+		tar xfz apr-1.5.2.tar.gz && rm apr-1.5.2.tar.gz; :
+	@ctags -R src apr-1.5.2 2> /dev/null
 
 .PHONY: clean
 clean: test_clean

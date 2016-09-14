@@ -18,6 +18,12 @@
  * along with skinnycat.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file skinny_proto.h
+ * @brief Basic implementation of Skinny protocol.
+ *
+ * @author Stas Kobzar <stas@modulis.ca>
+ */
 #ifndef __SKINNY_PROTO_H
 #define __SKINNY_PROTO_H
 

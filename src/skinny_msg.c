@@ -18,4 +18,10 @@
  * along with skinnycat.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file skinny_msg.c
+ * @brief Skinny protocol messages functions
+ *
+ * @author Stas Kobzar <stas@modulis.ca>
+ */
 #include "skinny_msg.h"

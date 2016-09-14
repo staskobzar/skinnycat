@@ -18,6 +18,12 @@
  * along with skinnycat.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file main.c
+ * @brief skinnycat utility main
+ *
+ * @author Stas Kobzar <stas@modulis.ca>
+ */
 #include <stdio.h>
 #include <apr_general.h>
 #include <apr_network_io.h>
