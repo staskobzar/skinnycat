@@ -6,3 +6,4 @@ doc/html
 apr-1.5.2
 bin/skinnycat
 tests/*_test
+Gemfile.lock
