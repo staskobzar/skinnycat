@@ -27,4 +27,7 @@
 #ifndef __SKINNY_MSG_H
 #define __SKINNY_MSG_H
 
+int foo(void);
+int bar(int a);
+
 #endif

@@ -49,3 +49,15 @@ ctags:
 clean: test_clean
 	rm -f $(BUILDDIR)/*.o $(TARGET)
 	rm -rf $(DOCS)/html
+
+#######################
+.PHONY: cov
+cov:
+	test -d cov || mkdir cov
+	$(CC) $(CMOCKA_FLAGS) -fprofile-arcs -ftest-coverage -fPIC -O0 -o cov/skinny_msg \
+		$(TESTDIR)/skinny_msg_test.c $(BUILDDIR)/skinny_msg.o $(CMOCKA_LIBS)
+	./cov/skinny_msg
+	mv *.gcno *.gcda cov
+	lcov -t "skinny_msg.c" -o cov/skinny_msg.info -r cov/skinny_msg.info tests/* -d cov/
+	genhtml -o cov/ cov/*.info
+

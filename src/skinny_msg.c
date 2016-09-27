@@ -25,3 +25,13 @@
  * @author Stas Kobzar <stas@modulis.ca>
  */
 #include "skinny_msg.h"
+
+int foo(void)
+{
+  return 1;
+}
+
+int bar(int a)
+{
+  return a * a;
+}

@@ -4,6 +4,7 @@
 *.o
 doc/html
 apr-1.5.2
+cov/
 bin/skinnycat
 tests/*_test
 Gemfile.lock
