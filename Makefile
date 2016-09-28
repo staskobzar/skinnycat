@@ -8,11 +8,12 @@
 # Copyright (C) 2016 Stas Kobzat <stas@modulis.ca>
 #
 # TARGETS:
-#   all
-#   test
-#   ctags
-#   doc
-#   clean
+#   all			-- build project
+#   test		-- run unit tests
+#   ctags		-- generate ctags for vim
+#   doc			-- generate documentation with doxygen
+#   cov			-- generate tests coverage report
+#   clean		-- clean up
 
 PROJECT   :=  skinnycat
 PKG_CFG   :=  $(shell which pkg-config)
@@ -47,17 +48,10 @@ ctags:
 
 .PHONY: clean
 clean: test_clean
-	rm -f $(BUILDDIR)/*.o $(TARGET)
-	rm -rf $(DOCS)/html
-
-#######################
-.PHONY: cov
-cov:
-	test -d cov || mkdir cov
-	$(CC) $(CMOCKA_FLAGS) -fprofile-arcs -ftest-coverage -fPIC -O0 -o cov/skinny_msg \
-		$(TESTDIR)/skinny_msg_test.c $(BUILDDIR)/skinny_msg.o $(CMOCKA_LIBS)
-	./cov/skinny_msg
-	mv *.gcno *.gcda cov
-	lcov -t "skinny_msg.c" -o cov/skinny_msg.info -r cov/skinny_msg.info tests/* -d cov/
-	genhtml -o cov/ cov/*.info
+	@echo Clean built objects
+	@rm -f $(BUILDDIR)/*.o $(TARGET)
+	@echo Clean documentation
+	@rm -rf $(DOCS)/html
+	@echo Clean test coverage reports
+	@rm -rf cov/*
 

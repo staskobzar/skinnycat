@@ -7,4 +7,6 @@ apr-1.5.2
 cov/
 bin/skinnycat
 tests/*_test
+*.log
+*.sum
 Gemfile.lock

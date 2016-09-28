@@ -1,0 +1,14 @@
+#
+# Configuration file for runtest of dejagnu
+# end-to-end functional tests.
+# Usage: make tests
+#    or  make e2e_tests
+#
+# Copyright (C) 2016 Stas Kobzar <stas@modulis.ca>
+#
+set tool e2e
+set srcdir ./tests
+set outdir ./tests/e2e
+set verbose 0
+set all 1
+

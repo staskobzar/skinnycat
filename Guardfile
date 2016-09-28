@@ -8,6 +8,11 @@ guard :shell do
     `make test`
   end
 
+  watch(/.*\.exp$/) do
+    `make`
+    `make e2e_tests`
+  end
+
   watch(/Makefile/) do
     `make clean && make`
   end
