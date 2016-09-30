@@ -41,7 +41,6 @@ cov:
 	@genhtml -q -o cov/ cov/*.info
 
 # End-to-end functional testing
-# runtest --tool main E2E=./main e2e.exp
 e2e_tests:
 	@echo
 	@echo "+------------------------------"

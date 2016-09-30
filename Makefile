@@ -9,7 +9,7 @@
 #
 # TARGETS:
 #   all			-- build project
-#   test		-- run unit tests
+#   test		-- run unit tests with cmocka and functional tests with dejagnu
 #   ctags		-- generate ctags for vim
 #   doc			-- generate documentation with doxygen
 #   cov			-- generate tests coverage report

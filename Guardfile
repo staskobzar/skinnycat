@@ -9,6 +9,7 @@ guard :shell do
   end
 
   watch(/.*\.exp$/) do
+    `make clean`
     `make`
     `make e2e_tests`
   end

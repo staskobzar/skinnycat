@@ -7,7 +7,7 @@
 APR_LIBS := $(shell pkg-config --libs apr-1)
 CFLAGS   += -g -Wall $(shell pkg-config --cflags apr-1)
 LDFLAGS  += $(APR_LIBS)
-OBJECTS  := main.o skinny_proto.o skinny_msg.o
+OBJECTS  := main.o skinny_proto.o skinny_msg.o skinnycat_opts.o
 
 ifndef APR_LIBS
   $(error Required library apr-1 not found.\
@@ -27,6 +27,10 @@ $(BUILDDIR)/skinny_proto.o: $(SRCDIR)/skinny_proto.c $(SRCDIR)/skinny_proto.h
 	@echo " LD   $@"
 
 $(BUILDDIR)/skinny_msg.o: $(SRCDIR)/skinny_msg.c $(SRCDIR)/skinny_msg.h
+	@$(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
+	@echo " LD   $@"
+
+$(BUILDDIR)/skinnycat_opts.o: $(SRCDIR)/skinnycat_opts.c $(SRCDIR)/skinnycat_opts.h
 	@$(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
 	@echo " LD   $@"
 

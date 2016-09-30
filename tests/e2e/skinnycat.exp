@@ -4,7 +4,15 @@
 # Copyright (C) 2016 Stas Kobzar <stas@modulis.ca>
 #
 set testcases {
-  {"Usage message" "-h" "Usage: "}
+  {"Help message short parameter -?"    "-h"       "Usage: "}
+  {"Help message long parameter --help" "--help"   "Usage: "}
+  {"No arguments"                       ""         "Usage: "}
+  {"Invalid arguments"                  "--foo"    "invalid option"}
+  {"Invalid arguments"                  "-@"       "invalid option character"}
+  {"Missing argument"                   "-H"       "missing argument"}
+  {"Invalid port"                       "-p port"  "invalid port"}
+  {"Too small port number"              "-p 0"     "invalid port 0"}
+  {"Too big port number"                "-p 87451" "invalid port 87451"}
 }
 
 global SKINNYCAT
@@ -12,11 +20,10 @@ foreach pattern $testcases {
   set msg    [lindex $pattern 0]
   set argv   [lindex $pattern 1]
   set output [lindex $pattern 2]
-  pass "OK"
-#  eval "spawn $SKINNYCAT $argv"
+  eval "spawn $SKINNYCAT $argv"
 
-#  expect {
-#    -re $output { pass $msg }
-#    default     { fail $msg }
-#  }
+  expect {
+    -re $output { pass $msg }
+    default     { fail $msg }
+  }
 }
