@@ -27,7 +27,145 @@
 #ifndef __SKINNY_MSG_H
 #define __SKINNY_MSG_H
 
-int foo(void);
-int bar(int a);
+#include <stdint.h>
+
+#define DEVICE_NAME_LEN     16
+#define SKINNY_HEADER_LEN   12
+
+/**
+ * Reset types
+ */
+#define SKINNY_DEV_RESET         1
+#define SKINNY_DEV_RESTART       2
+#define SKINNY_DEV_RELOAD_CONFIG 3
+
+/**
+ * Skinny messages IDs
+ */
+typedef enum {
+  MID_INVALID             = -1,
+  MID_KEEPALIVE           = 0x0000,
+  MID_REGISTER            = 0x0001,
+  MID_REGISTER_ACK        = 0x0081,
+  MID_REGISTER_REJECT     = 0x009d,
+  MID_RESET               = 0x009f,
+  MID_KEEPALIVE_ACK       = 0x0100,
+} skinny_msg_id;
+
+struct skinny_header {
+  uint32_t length;
+  uint32_t version;
+  uint32_t msg_id;
+};
+
+struct message_register {
+  char device_name[DEVICE_NAME_LEN];
+  uint32_t reserved;
+  uint32_t instance;
+  uint32_t ip_addr;
+  uint32_t dev_type;
+  uint32_t max_concurrent_streams;
+  uint32_t active_rtp_streams;
+  unsigned char proto_ver;
+  unsigned char unknown;
+  unsigned char phone_features[2];
+  uint32_t max_conferences;
+};
+
+struct message_register_ack {
+  uint32_t keepalive_primary;
+  unsigned char date_template[6];
+  unsigned char padding[2];
+  uint32_t keepalive_secondary;
+  unsigned char max_proto_ver;
+  unsigned char unknown;
+  unsigned char phone_features[2];
+};
+
+struct message_register_reject {
+  unsigned char error_text[32];
+};
+
+struct message_reset {
+  uint32_t reset_type;
+};
+
+union skinny_message_data {
+  struct message_register reg;
+  struct message_register_ack reg_ack;
+  struct message_register_reject reg_reject;
+  struct message_reset reset;
+};
+
+struct skinny_message {
+  struct skinny_header *header;
+  union skinny_message_data *data;
+};
+
+/**
+ * Skinny messages list element.
+ * Used to extract and create Skinny messages.
+ */
+struct skinny_msg_list {
+  /** Skinny message id */
+  skinny_msg_id id;
+  /** Skinny message extract function pointer. Converts received packet to structure. */
+  skinny_msg_id (*unpack)(const char *packet, struct skinny_message *msg);
+};
+
+/**
+ * Unpack skinny message.
+ * @param packet
+ * @param message   Skinny message struct
+ */
+skinny_msg_id unpack_message (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract KEEPALIVE message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_keepalive (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract REGISTER message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_register (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract REGISTER ACK message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_register_ack (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract REGISTER REJECT message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_register_reject (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract RESET message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_reset (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract KEEPALIVE ACK message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *msg);
 
 #endif
