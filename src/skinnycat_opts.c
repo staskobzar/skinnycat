@@ -26,7 +26,6 @@
  * @author Stas Kobzar <stas@modulis.ca>
  */
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include "skinnycat_opts.h"
 
@@ -39,6 +38,8 @@ static const apr_getopt_option_t optset[] = {
   { "host",   'H',  TRUE,   "Destination host." },
   { "port",   'p',  TRUE,   "Destination port." },
   { "method", 'M',  TRUE,   "Action method." },
+  { "debug",  'd',  FALSE,  "Enable debugging." },
+  { "verbose",'v',  FALSE,  "Enable verbose output." },
   { NULL, 0, 0, NULL },
 };
 
@@ -78,10 +79,10 @@ apr_status_t parse_opts (apr_pool_t **mp,
         return rv;
         break;
       case 'm': // mac address
-        strncpy(options->mac, optarg, LEN_MAC);
+        apr_cpystrn(options->mac, optarg, LEN_MAC);
         break;
       case 'H': // destination host
-        strncpy(options->host, optarg, LEN_HOST);
+        apr_cpystrn(options->host, optarg, LEN_HOST);
         break;
       case 'p': // destination port
         port = strtol(optarg, &endptr, 10);
@@ -92,7 +93,20 @@ apr_status_t parse_opts (apr_pool_t **mp,
         options->port = port;
         break;
       case 'M': // action method
-        strncpy(options->method, optarg, LEN_METHOD);
+        apr_cpystrn(options->method_str, optarg, LEN_METHOD);
+        options->action = action_id_for_method(optarg);
+        if (options->action == -1) {
+          printf("%s: invalid method %s\n", argv[0], optarg);
+          return APR_BADARG;
+        }
+        break;
+      case 'd':
+        options->debug = true;
+        printf("Debugging output enabled.\n");
+        break;
+      case 'v':
+        options->verb = true;
+        printf("Verbosity enabled.\n");
         break;
 
       default:
@@ -114,6 +128,10 @@ apr_status_t init_conf_options (skinnycat_opts *opts) {
   gen_cisco_mac (opts->mac);
   // default port
   opts->port = 2000;
+  // timeout
+  opts->sock_timeout = DEFAULT_TIMEOUT;
+  opts->debug = false;
+  opts->verb  = false;
   return rv;
 }
 
@@ -140,5 +158,41 @@ static void usage (const char *program,
  * Generate random CISCO MAC address
  */
 static void gen_cisco_mac (char *mac) {
-  strncpy(mac, "1C17D354D46F", LEN_MAC);
+  apr_cpystrn(mac, "1C17D354D46F", LEN_MAC);
 }
+
+/*
+ * Get action id from method name.
+ */
+action_id action_id_for_method(const char *method)
+{
+  action_id aid = -1;
+    if (apr_strnatcasecmp(method, "REGISTER") == 0) {
+      aid = AID_REGISTER;
+    }
+  return aid;
+}
+
+/*
+ * Log print
+ */
+void log_print (char *file, int line, int level, int fd, char *fmt, ...)
+{
+  va_list args;
+  switch (level) {
+    case LOG_LVL_DEBUG:
+      dprintf(fd, "%s:%d [DEBUG] ", file, line);
+      break;
+    case LOG_LVL_VERB:
+      dprintf(fd, " ");
+      break;
+    case LOG_LVL_ERROR:
+      dprintf(fd, "%s:%d ERROR: ", file, line);
+      break;
+  }
+  va_start(args, fmt);
+  vdprintf(fd, fmt, args);
+  va_end(args);
+  dprintf(fd, "\n");
+}
+

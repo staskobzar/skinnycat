@@ -13,6 +13,9 @@ set testcases {
   {"Invalid port"                       "-p port"  "invalid port"}
   {"Too small port number"              "-p 0"     "invalid port 0"}
   {"Too big port number"                "-p 87451" "invalid port 87451"}
+  {"Unknown method"                     "-M UNKNOWN" "invalid method UNKNOWN"}
+  {"Debug enable"                       "-d"       "Debugging output enabled."}
+  {"Verbose enable"                     "-v"       "Verbosity enabled."}
 }
 
 global SKINNYCAT

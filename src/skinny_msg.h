@@ -28,6 +28,8 @@
 #define __SKINNY_MSG_H
 
 #include <stdint.h>
+#include <apr_general.h>
+#include "skinnycat_opts.h"
 
 #define DEVICE_NAME_LEN     16
 #define SKINNY_HEADER_LEN   12
@@ -38,6 +40,7 @@
 #define SKINNY_DEV_RESET         1
 #define SKINNY_DEV_RESTART       2
 #define SKINNY_DEV_RELOAD_CONFIG 3
+#define SKINNY_MAX_PACK_LEN      2056
 
 /**
  * Skinny messages IDs
@@ -46,11 +49,35 @@ typedef enum {
   MID_INVALID             = -1,
   MID_KEEPALIVE           = 0x0000,
   MID_REGISTER            = 0x0001,
+  MID_IPPORT              = 0x0002,
   MID_REGISTER_ACK        = 0x0081,
+  MID_SETLAMP             = 0x0086,
   MID_REGISTER_REJECT     = 0x009d,
   MID_RESET               = 0x009f,
   MID_KEEPALIVE_ACK       = 0x0100,
 } skinny_msg_id;
+
+enum skinny_lamp_mode{
+  SKINNY_LAMP_OFF   = 1,
+  SKINNY_LAMP_ON    = 2,
+  SKINNY_LAMP_WINK  = 3,
+  SKINNY_LAMP_FLASH = 4,
+  SKINNY_LAMP_BLINK = 5,
+};
+
+enum skinny_button_definition {
+  SKINNY_BUTTON_UNKNOWN             = 0x00,
+  SKINNY_BUTTON_LAST_NUMBER_REDIAL  = 0x01,
+  SKINNY_BUTTON_SPEED_DIAL          = 0x02,
+  SKINNY_BUTTON_HOLD                = 0x03,
+  SKINNY_BUTTON_TRANSFER            = 0x04,
+  SKINNY_BUTTON_FORWARDALL          = 0x05,
+  SKINNY_BUTTON_LINE                = 0x09,
+  SKINNY_BUTTON_VOICEMAIL           = 0x0F,
+  SKINNY_BUTTON_PRIVACY             = 0x13,
+  SKINNY_BUTTON_SERVICE_URL         = 0x14,
+  SKINNY_BUTTON_UNDEFINED           = 0xFF,
+};
 
 struct skinny_header {
   uint32_t length;
@@ -72,6 +99,10 @@ struct message_register {
   uint32_t max_conferences;
 };
 
+struct message_ipport {
+  uint32_t port;
+};
+
 struct message_register_ack {
   uint32_t keepalive_primary;
   unsigned char date_template[6];
@@ -80,6 +111,12 @@ struct message_register_ack {
   unsigned char max_proto_ver;
   unsigned char unknown;
   unsigned char phone_features[2];
+};
+
+struct message_setlamp {
+  uint32_t stimulus;
+  uint32_t instance;
+  uint32_t lampMode;
 };
 
 struct message_register_reject {
@@ -93,6 +130,7 @@ struct message_reset {
 union skinny_message_data {
   struct message_register reg;
   struct message_register_ack reg_ack;
+  struct message_setlamp setlamp;
   struct message_register_reject reg_reject;
   struct message_reset reset;
 };
@@ -145,6 +183,14 @@ skinny_msg_id unpack_register (const char *packet, struct skinny_message *msg);
 skinny_msg_id unpack_register_ack (const char *packet, struct skinny_message *msg);
 
 /**
+ * Extract SET LAMP message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_setlamp (const char *packet, struct skinny_message *msg);
+
+/**
  * Extract REGISTER REJECT message from the skinny packet.
  * @param packet    Raw packet
  * @param message   Skinny message structure
@@ -167,5 +213,15 @@ skinny_msg_id unpack_reset (const char *packet, struct skinny_message *msg);
  * @return Packet identifier
  */
 skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *msg);
+
+/**
+ * Create Skinny register message as char buffer ready to send with socket.
+ * @param mp      Memory pool
+ * @param buf     Register packet buffer
+ * @param opts    Application options
+ * @param ip_addr IP address
+ * @return Packet size
+ */
+apr_size_t create_msg_register (apr_pool_t *mp, char **buf, skinnycat_opts *opts, unsigned long ip_addr);
 
 #endif

@@ -25,25 +25,56 @@
  * @author Stas Kobzar <stas@modulis.ca>
  */
 #include "skinny_proto.h"
-#include <apr_strings.h>
 
-
-/*
-apr_size_t init_register_message (apr_pool_t *mp, struct message_register **msg)
+apr_status_t skinny_uac_run (apr_pool_t *mp,
+                             skinnycat_opts *opts,
+                             apr_socket_t *sock)
 {
-  struct message_register *reg = apr_palloc(mp, sizeof(struct message_register));
-  device_name_set(reg->device_name, NULL);
-  reg->reserved = 0;
-  reg->instance = 1;
-  reg->dev_type = 8; // 7940
-  reg->max_concurrent_streams = 0;
-  reg->active_rtp_streams = 0;
-  reg->proto_ver = 0x0b; // 11
-  reg->unknown = 0;
-  reg->phone_features[0] = 0x60;
-  reg->phone_features[1] = 0x85;
-
-  *msg = reg;
-  return sizeof(struct message_register);
+  apr_status_t rv;
+  switch(opts->action) {
+    case AID_REGISTER:
+      rv = callflaw_register (mp, opts, sock);
+      break;
+    default:
+      rv = APR_BADARG;
+  }
+  return rv;
 }
-*/
+
+apr_status_t callflaw_register (apr_pool_t *mp,
+                                skinnycat_opts *opts,
+                                apr_socket_t *sock)
+{
+  apr_status_t rv;
+  apr_size_t size;
+  skinny_msg_id mid;
+  char *buf;
+
+  size = create_msg_register (mp, &buf, opts, sock_local_ip (sock));
+  rv = apr_socket_send (sock, buf, &size);
+  for(;;) {
+    char inbuf[SKINNY_MAX_PACK_LEN];
+    char *ptr_buf;
+    struct skinny_message *msg = (struct skinny_message*) apr_palloc (mp, sizeof(struct skinny_message));
+    ptr_buf = inbuf;
+    apr_size_t len = sizeof(inbuf);
+    rv = apr_socket_recv(sock, ptr_buf, &len);
+    mid = unpack_message (ptr_buf, msg);
+    if (mid == MID_INVALID) {
+      printf("Unrecognized or unsupported message : %d\n",
+          ((struct skinny_header *)inbuf)->msg_id );
+      rv = APR_ENOTIMPL;
+      break;
+    }
+  }
+
+  return rv;
+}
+
+
+unsigned long sock_local_ip(apr_socket_t *sock)
+{
+  apr_sockaddr_t *sa_local;
+  apr_socket_addr_get(&sa_local, APR_LOCAL, sock);
+  return sa_local->sa.sin.sin_addr.s_addr;
+}

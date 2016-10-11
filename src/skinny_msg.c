@@ -33,6 +33,7 @@ struct skinny_msg_list messages[] = {
   { MID_KEEPALIVE,        unpack_keepalive },
   { MID_REGISTER,         unpack_register },
   { MID_REGISTER_ACK,     unpack_register_ack },
+  { MID_SETLAMP,          unpack_setlamp },
   { MID_REGISTER_REJECT,  unpack_register_reject },
   { MID_RESET,            unpack_reset },
   { MID_KEEPALIVE_ACK,    unpack_keepalive_ack },
@@ -65,7 +66,7 @@ skinny_msg_id unpack_register (const char *packet, struct skinny_message *msg)
   msg->header = hdr;
   packet += SKINNY_HEADER_LEN;
   struct message_register *data = (struct message_register *) packet;
-  msg->data = data;
+  msg->data = (union skinny_message_data*) data;
   return hdr->msg_id;
 }
 
@@ -75,7 +76,17 @@ skinny_msg_id unpack_register_ack (const char *packet, struct skinny_message *ms
   msg->header = hdr;
   packet += SKINNY_HEADER_LEN;
   struct message_register_ack *data = (struct message_register_ack *) packet;
-  msg->data = data;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
+}
+
+skinny_msg_id unpack_setlamp (const char *packet, struct skinny_message *msg)
+{
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_setlamp *data = (struct message_setlamp *) packet;
+  msg->data = (union skinny_message_data*) data;
   return hdr->msg_id;
 }
 
@@ -85,7 +96,7 @@ skinny_msg_id unpack_register_reject (const char *packet, struct skinny_message 
   msg->header = hdr;
   packet += SKINNY_HEADER_LEN;
   struct message_register_reject *data = (struct message_register_reject *) packet;
-  msg->data = data;
+  msg->data = (union skinny_message_data*) data;
   return hdr->msg_id;
 }
 
@@ -95,7 +106,7 @@ skinny_msg_id unpack_reset (const char *packet, struct skinny_message *msg)
   msg->header = hdr;
   packet += SKINNY_HEADER_LEN;
   struct message_reset *data = (struct message_reset *) packet;
-  msg->data = data;
+  msg->data = (union skinny_message_data*) data;
   return hdr->msg_id;
 }
 
@@ -104,3 +115,34 @@ skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *m
   (void)msg;
   return MID_KEEPALIVE_ACK;
 }
+
+apr_size_t create_msg_register (apr_pool_t *mp,
+                                char **buf,
+                                skinnycat_opts *opts,
+                                unsigned long ip_addr)
+{
+  apr_size_t size = SKINNY_HEADER_LEN + sizeof(struct message_register);
+  struct message {
+    struct skinny_header hdr;
+    struct message_register data;
+  } message;
+  struct message *msg = apr_palloc(mp, sizeof(message));
+  msg->hdr.msg_id = MID_REGISTER;
+  msg->hdr.length = sizeof(struct message_register) + 4;
+  msg->hdr.version = 0;
+  msg->data.reserved = 0;
+  msg->data.instance = 1;
+  msg->data.ip_addr = ip_addr;
+  msg->data.dev_type = 8; // 7940
+  msg->data.max_concurrent_streams = 0;
+  msg->data.active_rtp_streams = 0;
+  msg->data.proto_ver = 0x0b; // 11
+  msg->data.unknown = 0;
+  msg->data.phone_features[0] = 0x60;
+  msg->data.phone_features[1] = 0x85;
+  apr_cpystrn(msg->data.device_name, apr_pstrcat(mp, "SEP", opts->mac, NULL), DEVICE_NAME_LEN);
+  *buf = (char *)msg;
+
+  return size;
+}
+
