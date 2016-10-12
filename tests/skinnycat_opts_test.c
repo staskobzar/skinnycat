@@ -4,7 +4,7 @@
 #include <cmocka.h>
 #include <stdio.h>
 
-#include "../src/skinnycat_opts.h"
+#include "../src/skinnycat.h"
 
 static void test_action_id_for_method_register (void **state)
 {

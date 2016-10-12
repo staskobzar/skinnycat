@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 #include <apr_general.h>
-#include "skinnycat_opts.h"
+#include "skinnycat.h"
 
 #define DEVICE_NAME_LEN     16
 #define SKINNY_HEADER_LEN   12

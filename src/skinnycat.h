@@ -19,7 +19,7 @@
  */
 
 /**
- * @file skinnycat_opts.h
+ * @file skinnycat.h
  * @brief Command line arguments/options parser and setting
  *        utility internal parameters.
  *
@@ -46,6 +46,8 @@ enum {
   LOG_LVL_VERB  = 2,
   LOG_LVL_ERROR = 4
 };
+
+extern int LOGLVL;
 
 #define LOG_DBG(...)  log_print(__FILE__, __LINE__, LOG_LVL_DEBUG, 1, __VA_ARGS__)
 #define LOG_VERB(...) log_print(__FILE__, __LINE__, LOG_LVL_VERB,  1, __VA_ARGS__)

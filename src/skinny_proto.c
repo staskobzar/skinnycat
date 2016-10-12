@@ -25,6 +25,7 @@
  * @author Stas Kobzar <stas@modulis.ca>
  */
 #include "skinny_proto.h"
+#include "skinnycat.h"
 
 apr_status_t skinny_uac_run (apr_pool_t *mp,
                              skinnycat_opts *opts,
@@ -52,6 +53,7 @@ apr_status_t callflaw_register (apr_pool_t *mp,
 
   size = create_msg_register (mp, &buf, opts, sock_local_ip (sock));
   rv = apr_socket_send (sock, buf, &size);
+  LOG_DBG("Sent packet REGISTER with length %d, returned: %d", size, rv);
   for(;;) {
     char inbuf[SKINNY_MAX_PACK_LEN];
     char *ptr_buf;

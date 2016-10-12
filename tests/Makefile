@@ -16,7 +16,7 @@ test: $(patsubst %,$(BUILDDIR)/%,$(OBJECTS)) test_suit e2e_tests unit_tests
 test_suit:
 	@echo " CC   skinny_msg_test"
 	@$(CC) $(CMOCKA_FLAGS) -o $(TESTDIR)/skinny_msg_test \
-		$(TESTDIR)/skinny_msg_test.c $(BUILDDIR)/skinny_msg.o $(CMOCKA_LIBS)
+		$(TESTDIR)/skinny_msg_test.c $(BUILDDIR)/skinny_msg.o $(BUILDDIR)/skinnycat_opts.o $(CMOCKA_LIBS)
 	@echo " CC   skinnycat_opts_test"
 	@$(CC) $(CMOCKA_FLAGS) -o $(TESTDIR)/skinnycat_opts_test \
 		$(TESTDIR)/skinnycat_opts_test.c $(BUILDDIR)/skinnycat_opts.o $(CMOCKA_LIBS)

@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "skinnycat.h"
 #include "skinny_msg.h"
 
 struct skinny_msg_list messages[] = {
@@ -127,6 +128,7 @@ apr_size_t create_msg_register (apr_pool_t *mp,
     struct message_register data;
   } message;
   struct message *msg = apr_palloc(mp, sizeof(message));
+  LOG_DBG("Created REGISTER packet...");
   msg->hdr.msg_id = MID_REGISTER;
   msg->hdr.length = sizeof(struct message_register) + 4;
   msg->hdr.version = 0;

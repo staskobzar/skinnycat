@@ -27,8 +27,9 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include "skinnycat_opts.h"
+#include "skinnycat.h"
 
+int LOGLVL;
 /**
  * Structure of skinnycat parameters.
  */
@@ -80,33 +81,39 @@ apr_status_t parse_opts (apr_pool_t **mp,
         break;
       case 'm': // mac address
         apr_cpystrn(options->mac, optarg, LEN_MAC);
+        LOG_DBG("Set device MAC address: %s", optarg);
         break;
       case 'H': // destination host
         apr_cpystrn(options->host, optarg, LEN_HOST);
+        LOG_DBG("Set destination host: %s", optarg);
         break;
       case 'p': // destination port
         port = strtol(optarg, &endptr, 10);
         if (port < 1 || port > 65535) {
-          printf("%s: invalid port %d\n", argv[0], port);
+          LOG_ERR("%s: invalid port %d", argv[0], port);
           return APR_BADARG;
         }
+        LOG_DBG("Set destination port: %d", port);
         options->port = port;
         break;
       case 'M': // action method
         apr_cpystrn(options->method_str, optarg, LEN_METHOD);
         options->action = action_id_for_method(optarg);
         if (options->action == -1) {
-          printf("%s: invalid method %s\n", argv[0], optarg);
+          LOG_ERR("Invalid method %s", optarg);
           return APR_BADARG;
         }
+        LOG_DBG("Set method: %s", optarg);
         break;
       case 'd':
         options->debug = true;
-        printf("Debugging output enabled.\n");
+        LOGLVL |= LOG_LVL_DEBUG;
+        LOG_DBG("Debugging output enabled.");
         break;
       case 'v':
         options->verb = true;
-        printf("Verbosity enabled.\n");
+        LOGLVL |= LOG_LVL_VERB;
+        LOG_VERB("Verbosity enabled.");
         break;
 
       default:
@@ -114,7 +121,7 @@ apr_status_t parse_opts (apr_pool_t **mp,
     }
   }
   if (rv != APR_EOF) {
-    printf("Run \"%s --help\" for options list.\n", argv[0]);
+    LOG_ERR("Run \"%s --help\" for options list.\n", argv[0]);
   }
   return rv;
 }
@@ -132,6 +139,7 @@ apr_status_t init_conf_options (skinnycat_opts *opts) {
   opts->sock_timeout = DEFAULT_TIMEOUT;
   opts->debug = false;
   opts->verb  = false;
+  LOGLVL = 0;
   return rv;
 }
 
@@ -181,13 +189,15 @@ void log_print (char *file, int line, int level, int fd, char *fmt, ...)
   va_list args;
   switch (level) {
     case LOG_LVL_DEBUG:
-      dprintf(fd, "%s:%d [DEBUG] ", file, line);
+      if ((LOGLVL & LOG_LVL_DEBUG) != LOG_LVL_DEBUG) return;
+      dprintf(fd, "[DEBUG] %s:%d: ", file, line);
       break;
     case LOG_LVL_VERB:
-      dprintf(fd, " ");
+      if ((LOGLVL & LOG_LVL_VERB) != LOG_LVL_VERB) return;
+      dprintf(fd, "[INFO]  ");
       break;
     case LOG_LVL_ERROR:
-      dprintf(fd, "%s:%d ERROR: ", file, line);
+      dprintf(fd, "[ERROR] %s:%d: ", file, line);
       break;
   }
   va_start(args, fmt);
