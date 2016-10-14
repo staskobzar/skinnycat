@@ -82,12 +82,15 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       size = create_msg_btn_tmpl_req (mp, &buf);
       rv = apr_socket_send (sock, buf, &size);
       LOG_DBG("Sent packet BUTTON TEMPLATE REQ with length %d, returned: %d", size, rv);
-      // TODO: capabilities send
     } else if (mid == MID_INVALID) {
       LOG_ERR("Unrecognized or unsupported message : %d",
           ((struct skinny_header *)inbuf)->msg_id );
       rv = APR_ENOTIMPL;
   break;
+    } else if (mid == MID_BUTTON_TMPL ) {
+      LOG_VERB("<-- Device buttons template");
+      rv = APR_SUCCESS;
+  //break;
     }
   }
 

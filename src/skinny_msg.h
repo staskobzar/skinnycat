@@ -54,6 +54,7 @@ typedef enum {
   MID_BUTTON_TMPL_REQ     = 0x000e,
   MID_REGISTER_ACK        = 0x0081,
   MID_SETLAMP             = 0x0086,
+  MID_BUTTON_TMPL         = 0x0097,
   MID_CAPABILITIES_REQ    = 0x009b,
   MID_REGISTER_REJECT     = 0x009d,
   MID_RESET               = 0x009f,
@@ -133,6 +134,17 @@ struct message_setlamp {
   uint32_t lampMode;
 };
 
+struct button_definition {
+  uint8_t instance;
+  uint8_t definition;
+};
+struct message_buttons_template {
+  uint32_t offset;
+  uint32_t btn_count;
+  uint32_t btn_total;
+  struct button_definition btn[42];
+};
+
 struct message_register_reject {
   unsigned char error_text[32];
 };
@@ -146,6 +158,7 @@ union skinny_message_data {
   struct message_capabilities_res cap_res;
   struct message_register_ack reg_ack;
   struct message_setlamp setlamp;
+  struct message_buttons_template btn_tmpl;
   struct message_register_reject reg_reject;
   struct message_reset reset;
 };
@@ -228,6 +241,14 @@ skinny_msg_id unpack_setlamp (const char *packet, struct skinny_message *msg);
  * @return Packet identifier
  */
 skinny_msg_id unpack_capabilities_req (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract BUTTONS TEMPLATE message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_button_tmpl (const char *packet, struct skinny_message *msg);
 
 /**
  * Extract REGISTER REJECT message from the skinny packet.

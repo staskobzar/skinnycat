@@ -37,6 +37,7 @@ struct skinny_msg_list messages[] = {
   { MID_BUTTON_TMPL_REQ,  unpack_button_tmpl_req },
   { MID_REGISTER_ACK,     unpack_register_ack },
   { MID_SETLAMP,          unpack_setlamp },
+  { MID_BUTTON_TMPL,      unpack_button_tmpl },
   { MID_CAPABILITIES_REQ, unpack_capabilities_req },
   { MID_REGISTER_REJECT,  unpack_register_reject },
   { MID_RESET,            unpack_reset },
@@ -51,10 +52,14 @@ struct skinny_msg_list messages[] = {
 skinny_msg_id unpack_message (const char *packet, struct skinny_message *msg) {
   struct skinny_header *hdr = (struct skinny_header *) packet;
   struct skinny_msg_list *p = messages;
-  for (; p->id >= 0; p++)
+  LOG_DBG("Unpacking message ...");
+  for (; p->id >= 0; p++) {
     if (p->id == hdr->msg_id) {
+      LOG_DBG("Found message id : %d", p->id);
       return p->unpack(packet, msg);
     }
+  }
+  LOG_DBG("Unknown or not supported msg id: %d", hdr->msg_id);
   return p->id;
 }
 
@@ -112,6 +117,17 @@ skinny_msg_id unpack_setlamp (const char *packet, struct skinny_message *msg)
   msg->header = hdr;
   packet += SKINNY_HEADER_LEN;
   struct message_setlamp *data = (struct message_setlamp *) packet;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
+}
+
+skinny_msg_id unpack_button_tmpl (const char *packet, struct skinny_message *msg)
+{
+  LOG_DBG("Unpack packet BUTTONS TEMPLATE");
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_setlamp *data = (struct message_button_template *) packet;
   msg->data = (union skinny_message_data*) data;
   return hdr->msg_id;
 }
@@ -224,6 +240,23 @@ apr_size_t create_msg_btn_tmpl_req (apr_pool_t *mp, char **buf)
   return size;
 }
 
+apr_size_t create_msg_ipport (apr_pool_t *mp, char **buf)
+{
+  struct message {
+    struct skinny_header hdr;
+    struct message_ipport data;
+  } message;
+  apr_size_t size = sizeof(message);
+  struct message *msg = apr_palloc(mp, size);
+  LOG_DBG("Create IPPORT packet.");
+  msg->hdr.msg_id = MID_IPPORT;
+  msg->hdr.length = sizeof(struct message_ipport) + 4;
+  msg->hdr.version = 0x0016;
+  msg->data.port = 3500;
+
+  *buf = (char*)msg;
+}
+
 const char* lamp_mode_to_str (enum skinny_lamp_mode mode)
 {
   switch (mode) {
@@ -269,3 +302,5 @@ const char* btn_def_to_str (enum skinny_button_definition btn)
       return "UNKNOWN";
   }
 }
+
+/* vim: let g:syntastic_c_include_dirs = ['/usr/include/apr-1.0'] */
