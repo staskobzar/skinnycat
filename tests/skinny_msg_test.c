@@ -32,6 +32,19 @@ const char raw_reg_packet[] = {  0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00};
 
+/* RAW CAPABILITIES RES */
+const char raw_cap_res[] = {  0x88, 0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x10,0x00,0x00,0x00,0x08,0x00,0x00,0x00, 0x19,0x00,0x00,0x00,0x78,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x04,0x00,0x00,0x00,0x28,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x02,0x00,0x00,0x00,0x28,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x0f,0x00,0x00,0x00,
+  0x3c,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x10,0x00,0x00,
+  0x00,0x3c,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00,0x0b,0x00,
+  0x00,0x00,0x3c,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00,0x00,0x0c,
+  0x00,0x00,0x00,0x3c,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x01,0x01,0x00,0x00,0x04,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x00 };
+
 /* RAW REGISTER ACK */
 const char raw_reg_ack_packet[] = {   0x18,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x81,
   0x00,0x00,0x00,0x18,0x00,0x00,0x00,0x44, 0x2d,0x4d,0x2d,0x59,0x59,0x00,0x00,0x18,
@@ -50,6 +63,14 @@ const char raw_reset_packet[] = {0x08,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x9f,0x
 /* RAW SET LAMP */
 const char raw_set_lamp[] = {0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x86,0x00,
   0x00,0x00,0x09,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x02,0x00,0x00,0x00};
+
+/* RAW CAPABILITIES REQ */
+const char raw_capabilities_req[] = {0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x9b,0x00,
+  0x00,0x00};
+
+/* RAW BUTTON TEMPLATE REQUEST */
+const char raw_btn_tmpl_req[] = {0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0e,0x00,0x00,0x00};
+
 /* END: Raw packets for testing. */
 
 /*
@@ -113,6 +134,15 @@ static void test_unpack_keepalive_ack (void **state)
   assert_int_equal (unpack_message(raw_keepalive_ack_packet, &msg), MID_KEEPALIVE_ACK);
 }
 
+static void test_unpack_cap_res (void **state)
+{
+  struct skinny_message *msg = *state;
+  skinny_msg_id mid = unpack_message (raw_cap_res, msg);
+  assert_int_equal (mid, MID_CAPABILITIES_RES);
+  assert_int_equal (msg->header->length, 136);
+  assert_int_equal (msg->data->cap_res.cap_count, 8);
+}
+
 static void test_unpack_reg (void **state)
 {
   struct skinny_message *msg = *state;
@@ -161,6 +191,20 @@ static void test_unpack_set_lamp (void **state)
   assert_int_equal (msg->data->setlamp.lampMode, SKINNY_LAMP_ON);
 }
 
+static void test_unpack_capabilities_req (void **state)
+{
+  (void)*state;
+  struct skinny_message msg;
+  assert_int_equal(unpack_message(raw_capabilities_req, &msg), MID_CAPABILITIES_REQ);
+}
+
+static void test_unpack_btn_tmpl_req (void **state)
+{
+  (void)*state;
+  struct skinny_message msg;
+  assert_int_equal(unpack_message(raw_btn_tmpl_req, &msg), MID_BUTTON_TMPL_REQ);
+}
+
 /* ===================== */
 /* create messages tests */
 /* ===================== */
@@ -184,6 +228,44 @@ static void test_create_meg_register (void **state)
 
 }
 
+static void test_create_meg_cap_res (void **state)
+{
+  apr_pool_t *mp = *state;
+  struct skinny_message *cap;
+  skinny_msg_id mid;
+  char *buf;
+
+  cap = (struct skinny_message*) apr_palloc (mp, sizeof(struct skinny_message));
+
+  create_msg_cap_res (mp, &buf);
+  mid = unpack_message (buf, cap);
+  assert_int_equal (mid, MID_CAPABILITIES_RES);
+  assert_int_equal (cap->header->msg_id, MID_CAPABILITIES_RES);
+  assert_int_equal (cap->data->cap_res.cap_count, 3);
+}
+
+/* ===================== */
+/* utility methods       */
+/* ===================== */
+static void test_lamp_mode_to_str (void **state)
+{
+  (void)*state;
+  assert_string_equal (lamp_mode_to_str(SKINNY_LAMP_ON), "ON");
+  assert_string_equal (lamp_mode_to_str(SKINNY_LAMP_FLASH), "FLASH");
+  assert_string_equal (lamp_mode_to_str(SKINNY_LAMP_BLINK), "BLINK");
+}
+
+static void test_btn_def_to_str (void **state)
+{
+  (void)*state;
+  assert_string_equal (btn_def_to_str(SKINNY_BUTTON_LINE), "LINE");
+  assert_string_equal (btn_def_to_str(SKINNY_BUTTON_SPEED_DIAL), "SPEED DIAL");
+  assert_string_equal (btn_def_to_str(SKINNY_BUTTON_VOICEMAIL), "VOICEMAIL");
+}
+
+/* ===================== */
+/* MAIN proc             */
+/* ===================== */
 int main(int argc, const char *argv[])
 {
   printf("Testing Skinny message\n");
@@ -192,11 +274,17 @@ int main(int argc, const char *argv[])
     cmocka_unit_test (test_unpack_keepalive),
     cmocka_unit_test (test_unpack_keepalive_ack),
     cmocka_unit_test_setup_teardown (test_unpack_reg,         setup_unpack_msg, teardown_unpack_msg),
+    cmocka_unit_test_setup_teardown (test_unpack_cap_res,     setup_unpack_msg, teardown_unpack_msg),
     cmocka_unit_test_setup_teardown (test_unpack_reg_ack,     setup_unpack_msg, teardown_unpack_msg),
     cmocka_unit_test_setup_teardown (test_unpack_set_lamp,    setup_unpack_msg, teardown_unpack_msg),
     cmocka_unit_test_setup_teardown (test_unpack_reg_reject,  setup_unpack_msg, teardown_unpack_msg),
     cmocka_unit_test_setup_teardown (test_unpack_reset,       setup_unpack_msg, teardown_unpack_msg),
     cmocka_unit_test_setup_teardown (test_create_meg_register,setup_create_msg, teardown_create_msg),
+    cmocka_unit_test (test_lamp_mode_to_str),
+    cmocka_unit_test (test_btn_def_to_str),
+    cmocka_unit_test (test_unpack_capabilities_req),
+    cmocka_unit_test_setup_teardown (test_create_meg_cap_res, setup_create_msg, teardown_create_msg),
+    cmocka_unit_test (test_unpack_btn_tmpl_req),
   };
   return cmocka_run_group_tests_name("SKINNY message", tests, NULL, NULL);
 }

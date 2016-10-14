@@ -50,8 +50,11 @@ typedef enum {
   MID_KEEPALIVE           = 0x0000,
   MID_REGISTER            = 0x0001,
   MID_IPPORT              = 0x0002,
+  MID_CAPABILITIES_RES    = 0x0010,
+  MID_BUTTON_TMPL_REQ     = 0x000e,
   MID_REGISTER_ACK        = 0x0081,
   MID_SETLAMP             = 0x0086,
+  MID_CAPABILITIES_REQ    = 0x009b,
   MID_REGISTER_REJECT     = 0x009d,
   MID_RESET               = 0x009f,
   MID_KEEPALIVE_ACK       = 0x0100,
@@ -99,6 +102,17 @@ struct message_register {
   uint32_t max_conferences;
 };
 
+struct station_capabilities {
+  uint32_t payload;
+  uint32_t max_frames; // max frames per packet
+  unsigned char params[4];
+};
+
+struct message_capabilities_res {
+  uint32_t cap_count;
+  struct station_capabilities caps[18];
+};
+
 struct message_ipport {
   uint32_t port;
 };
@@ -129,6 +143,7 @@ struct message_reset {
 
 union skinny_message_data {
   struct message_register reg;
+  struct message_capabilities_res cap_res;
   struct message_register_ack reg_ack;
   struct message_setlamp setlamp;
   struct message_register_reject reg_reject;
@@ -175,6 +190,22 @@ skinny_msg_id unpack_keepalive (const char *packet, struct skinny_message *msg);
 skinny_msg_id unpack_register (const char *packet, struct skinny_message *msg);
 
 /**
+ * Extract CAPABILITIES RESPONSE message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_capabilities_res (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract BUTTON TEMPLATE REQUEST message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_button_tmpl_req (const char *packet, struct skinny_message *msg);
+
+/**
  * Extract REGISTER ACK message from the skinny packet.
  * @param packet    Raw packet
  * @param message   Skinny message structure
@@ -189,6 +220,14 @@ skinny_msg_id unpack_register_ack (const char *packet, struct skinny_message *ms
  * @return Packet identifier
  */
 skinny_msg_id unpack_setlamp (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract CAPABILITIES REQUEST message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_capabilities_req (const char *packet, struct skinny_message *msg);
 
 /**
  * Extract REGISTER REJECT message from the skinny packet.
@@ -223,5 +262,33 @@ skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *m
  * @return Packet size
  */
 apr_size_t create_msg_register (apr_pool_t *mp, char **buf, skinnycat_opts *opts, unsigned long ip_addr);
+
+/**
+ * Create Skinny capabilities response message as char buffer ready to send with socket.
+ * @param mp      Memory pool
+ * @param buf     Register packet buffer
+ * @return Packet size
+ */
+apr_size_t create_msg_cap_res (apr_pool_t *mp, char **buf);
+
+/**
+ * Create Skinny BUTTON TEMPLATE REQUEST message as char buffer ready to send with socket.
+ * @param mp      Memory pool
+ * @param buf     Register packet buffer
+ * @return Packet size
+ */
+apr_size_t create_msg_btn_tmpl_req (apr_pool_t *mp, char **buf);
+
+/**
+ * Utility method to convert lamp mode enum to string for debugging.
+ * @param mode
+ */
+const char* lamp_mode_to_str (enum skinny_lamp_mode mode);
+
+/**
+ * Utility method to convert button definition enum to string for debugging.
+ * @param mode
+ */
+const char* btn_def_to_str (enum skinny_button_definition btn);
 
 #endif

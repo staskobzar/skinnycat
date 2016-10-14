@@ -52,6 +52,7 @@ apr_status_t callflaw_register (apr_pool_t *mp,
   char *buf;
 
   size = create_msg_register (mp, &buf, opts, sock_local_ip (sock));
+  LOG_VERB("--> Register device %s", opts->mac);
   rv = apr_socket_send (sock, buf, &size);
   LOG_DBG("Sent packet REGISTER with length %d, returned: %d", size, rv);
   for(;;) {
@@ -62,11 +63,31 @@ apr_status_t callflaw_register (apr_pool_t *mp,
     apr_size_t len = sizeof(inbuf);
     rv = apr_socket_recv(sock, ptr_buf, &len);
     mid = unpack_message (ptr_buf, msg);
-    if (mid == MID_INVALID) {
-      printf("Unrecognized or unsupported message : %d\n",
+    if (mid == MID_REGISTER_ACK) {
+      LOG_VERB("<-- Register ACK");
+    } else if (mid == MID_REGISTER_REJECT) {
+      LOG_VERB("<-- Register Rejected");
+  break;
+    } else if (mid == MID_SETLAMP) {
+      LOG_VERB("<-- Set Lamp %s for %s",
+          lamp_mode_to_str (msg->data->setlamp.lampMode),
+          btn_def_to_str (msg->data->setlamp.stimulus));
+    } else if (mid == MID_CAPABILITIES_REQ) {
+      LOG_VERB("<-- Capabilities request");
+      size = create_msg_cap_res (mp, &buf);
+      LOG_VERB("--> Capabilities response");
+      rv = apr_socket_send (sock, buf, &size);
+      LOG_DBG("Sent packet CAPABILITIES RES with length %d, returned: %d", size, rv);
+      LOG_VERB("--> Button template request");
+      size = create_msg_btn_tmpl_req (mp, &buf);
+      rv = apr_socket_send (sock, buf, &size);
+      LOG_DBG("Sent packet BUTTON TEMPLATE REQ with length %d, returned: %d", size, rv);
+      // TODO: capabilities send
+    } else if (mid == MID_INVALID) {
+      LOG_ERR("Unrecognized or unsupported message : %d",
           ((struct skinny_header *)inbuf)->msg_id );
       rv = APR_ENOTIMPL;
-      break;
+  break;
     }
   }
 
