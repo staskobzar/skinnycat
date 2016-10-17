@@ -51,9 +51,11 @@ typedef enum {
   MID_REGISTER            = 0x0001,
   MID_IPPORT              = 0x0002,
   MID_CAPABILITIES_RES    = 0x0010,
+  MID_DATETIME_REQ        = 0x000d,
   MID_BUTTON_TMPL_REQ     = 0x000e,
   MID_REGISTER_ACK        = 0x0081,
   MID_SETLAMP             = 0x0086,
+  MID_DEFINE_DATETIME     = 0x0094,
   MID_BUTTON_TMPL         = 0x0097,
   MID_CAPABILITIES_REQ    = 0x009b,
   MID_REGISTER_REJECT     = 0x009d,
@@ -138,11 +140,24 @@ struct button_definition {
   uint8_t instance;
   uint8_t definition;
 };
+
 struct message_buttons_template {
   uint32_t offset;
   uint32_t btn_count;
   uint32_t btn_total;
   struct button_definition btn[42];
+};
+
+struct message_def_datetime {
+  uint32_t year;
+  uint32_t month;
+  uint32_t week;
+  uint32_t week_day;
+  uint32_t hour;
+  uint32_t minute;
+  uint32_t sec;
+  uint32_t msec; //milliseconds
+  uint32_t systime;
 };
 
 struct message_register_reject {
@@ -160,6 +175,7 @@ union skinny_message_data {
   struct message_register_ack reg_ack;
   struct message_setlamp setlamp;
   struct message_buttons_template btn_tmpl;
+  struct message_def_datetime dtime;
   struct message_register_reject reg_reject;
   struct message_reset reset;
 };
@@ -252,12 +268,28 @@ skinny_msg_id unpack_setlamp (const char *packet, struct skinny_message *msg);
 skinny_msg_id unpack_capabilities_req (const char *packet, struct skinny_message *msg);
 
 /**
+ * Extract DATETIME REQUEST message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_datetime_req (const char *packet, struct skinny_message *msg);
+
+/**
  * Extract BUTTONS TEMPLATE message from the skinny packet.
  * @param packet    Raw packet
  * @param message   Skinny message structure
  * @return Packet identifier
  */
 skinny_msg_id unpack_button_tmpl (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract DATE TIME TEMPLATE message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_def_datetime (const char *packet, struct skinny_message *msg);
 
 /**
  * Extract REGISTER REJECT message from the skinny packet.
@@ -318,6 +350,14 @@ apr_size_t create_msg_cap_res (apr_pool_t *mp, char **buf);
  * @return Packet size
  */
 apr_size_t create_msg_btn_tmpl_req (apr_pool_t *mp, char **buf);
+
+/**
+ * Create Skinny DATE TIME REQUEST message as char buffer ready to send with socket.
+ * @param mp      Memory pool
+ * @param buf     Register packet buffer
+ * @return Packet size
+ */
+apr_size_t create_msg_datetime_req (apr_pool_t *mp, char **buf);
 
 /**
  * Utility method to convert lamp mode enum to string for debugging.

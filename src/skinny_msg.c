@@ -35,9 +35,11 @@ struct skinny_msg_list messages[] = {
   { MID_IPPORT,           unpack_ipport },
   { MID_REGISTER,         unpack_register },
   { MID_CAPABILITIES_RES, unpack_capabilities_res },
+  { MID_DATETIME_REQ,     unpack_datetime_req },
   { MID_BUTTON_TMPL_REQ,  unpack_button_tmpl_req },
   { MID_REGISTER_ACK,     unpack_register_ack },
   { MID_SETLAMP,          unpack_setlamp },
+  { MID_DEFINE_DATETIME,  unpack_def_datetime },
   { MID_BUTTON_TMPL,      unpack_button_tmpl },
   { MID_CAPABILITIES_REQ, unpack_capabilities_req },
   { MID_REGISTER_REJECT,  unpack_register_reject },
@@ -144,11 +146,29 @@ skinny_msg_id unpack_button_tmpl (const char *packet, struct skinny_message *msg
   return hdr->msg_id;
 }
 
+skinny_msg_id unpack_def_datetime (const char *packet, struct skinny_message *msg)
+{
+  LOG_DBG("Unpack packet DATE TIME TEMPLATE");
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_define_datetime *data = (struct message_define_datetime *) packet;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
+}
+
 skinny_msg_id unpack_capabilities_req (const char *packet, struct skinny_message *msg)
 {
   (void)msg;
   LOG_DBG("Unpack message CAPABILITIES REQUEST");
   return MID_CAPABILITIES_REQ;
+}
+
+skinny_msg_id unpack_datetime_req (const char *packet, struct skinny_message *msg)
+{
+  (void)msg;
+  LOG_DBG("Unpack message DATETIME REQUEST");
+  return MID_DATETIME_REQ;
 }
 
 skinny_msg_id unpack_register_reject (const char *packet, struct skinny_message *msg)
@@ -245,6 +265,18 @@ apr_size_t create_msg_btn_tmpl_req (apr_pool_t *mp, char **buf)
   apr_size_t size = SKINNY_HEADER_LEN;
   struct skinny_header *tmpl = apr_palloc(mp, sizeof(struct skinny_header));
   tmpl->msg_id = MID_BUTTON_TMPL_REQ;
+  tmpl->length = 4;
+  tmpl->version = 0;
+
+  *buf = (char*)tmpl;
+  return size;
+}
+
+apr_size_t create_msg_datetime_req (apr_pool_t *mp, char **buf)
+{
+  apr_size_t size = SKINNY_HEADER_LEN;
+  struct skinny_header *tmpl = apr_palloc(mp, sizeof(struct skinny_header));
+  tmpl->msg_id = MID_DATETIME_REQ;
   tmpl->length = 4;
   tmpl->version = 0;
 

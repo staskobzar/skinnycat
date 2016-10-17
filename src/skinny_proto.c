@@ -72,6 +72,9 @@ apr_status_t callflaw_register (apr_pool_t *mp,
 
     if (mid == MID_REGISTER_ACK) {
       LOG_VERB("<-- Register ACK");
+      size = create_msg_btn_tmpl_req (mp, &buf);
+      rv = apr_socket_send (sock, buf, &size);
+      LOG_DBG("Sent packet BUTTON TEMPLATE REQ with length %d, returned: %d", size, rv);
 
     } else if (mid == MID_REGISTER_REJECT) {
 
@@ -92,9 +95,6 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       rv = apr_socket_send (sock, buf, &size);
       LOG_DBG("Sent packet CAPABILITIES RES with length %d, returned: %d", size, rv);
       LOG_VERB("--> Button template request");
-      size = create_msg_btn_tmpl_req (mp, &buf);
-      rv = apr_socket_send (sock, buf, &size);
-      LOG_DBG("Sent packet BUTTON TEMPLATE REQ with length %d, returned: %d", size, rv);
 
     } else if (mid == MID_INVALID) {
 
@@ -109,6 +109,10 @@ apr_status_t callflaw_register (apr_pool_t *mp,
         LOG_VERB("    [Button #%d] : %s", (i + 1),
             btn_def_to_str(msg->data->btn_tmpl.btn[i].definition));
       }
+      size = create_msg_datetime_req (mp, &buf);
+      LOG_VERB("--> Date time template request");
+      rv = apr_socket_send (sock, buf, &size);
+      LOG_DBG("Sent packet DATETIME REQUEST with length %d, returned: %d", size, rv);
       rv = APR_SUCCESS;
   //break;
     }
