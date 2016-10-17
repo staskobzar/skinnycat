@@ -32,6 +32,7 @@
 
 struct skinny_msg_list messages[] = {
   { MID_KEEPALIVE,        unpack_keepalive },
+  { MID_IPPORT,           unpack_ipport },
   { MID_REGISTER,         unpack_register },
   { MID_CAPABILITIES_RES, unpack_capabilities_res },
   { MID_BUTTON_TMPL_REQ,  unpack_button_tmpl_req },
@@ -68,6 +69,17 @@ skinny_msg_id unpack_keepalive (const char *packet, struct skinny_message *msg)
   (void)msg;
   LOG_DBG("Unpack message KEEPALIVE");
   return MID_KEEPALIVE;
+}
+
+skinny_msg_id unpack_ipport (const char *packet, struct skinny_message *msg)
+{
+  LOG_DBG("Unpack message IPPORT");
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_ipport *data = (struct message_ipport *) packet;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
 }
 
 skinny_msg_id unpack_register (const char *packet, struct skinny_message *msg)
@@ -127,7 +139,7 @@ skinny_msg_id unpack_button_tmpl (const char *packet, struct skinny_message *msg
   struct skinny_header *hdr =  (struct skinny_header *) packet;
   msg->header = hdr;
   packet += SKINNY_HEADER_LEN;
-  struct message_setlamp *data = (struct message_button_template *) packet;
+  struct message_button_template *data = (struct message_button_template *) packet;
   msg->data = (union skinny_message_data*) data;
   return hdr->msg_id;
 }
@@ -252,9 +264,10 @@ apr_size_t create_msg_ipport (apr_pool_t *mp, char **buf)
   msg->hdr.msg_id = MID_IPPORT;
   msg->hdr.length = sizeof(struct message_ipport) + 4;
   msg->hdr.version = 0x0016;
-  msg->data.port = 3500;
+  msg->data.port = 3500; // TODO: define port
 
   *buf = (char*)msg;
+  return size;
 }
 
 const char* lamp_mode_to_str (enum skinny_lamp_mode mode)

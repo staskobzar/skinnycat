@@ -32,6 +32,10 @@ const char raw_reg_packet[] = {  0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00};
 
+/* RAW REGISTER */
+const char raw_ipport[] = { 0x08,0x00,0x00,0x00,0x16,0x00,0x00,0x00,0x02,0x00,0x00,
+  0x00,0xac,0x0d,0x00,0x00};
+
 /* RAW CAPABILITIES RES */
 const char raw_cap_res[] = {  0x88, 0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x10,0x00,0x00,0x00,0x08,0x00,0x00,0x00, 0x19,0x00,0x00,0x00,0x78,0x00,0x00,
@@ -153,6 +157,15 @@ static void test_unpack_cap_res (void **state)
   assert_int_equal (mid, MID_CAPABILITIES_RES);
   assert_int_equal (msg->header->length, 136);
   assert_int_equal (msg->data->cap_res.cap_count, 8);
+}
+
+static void test_unpack_ipport (void **state)
+{
+  struct skinny_message *msg = *state;
+  skinny_msg_id mid = unpack_message (raw_ipport, msg);
+  assert_int_equal (mid, MID_IPPORT);
+  assert_int_equal (msg->header->length, 8);
+  assert_int_equal (msg->data->ipport.port, 3500);
 }
 
 static void test_unpack_reg (void **state)
@@ -307,6 +320,7 @@ int main(int argc, const char *argv[])
     cmocka_unit_test_setup_teardown (test_create_meg_cap_res, setup_create_msg, teardown_create_msg),
     cmocka_unit_test (test_unpack_btn_tmpl_req),
     cmocka_unit_test_setup_teardown (test_unpack_btn_tmpl,    setup_unpack_msg, teardown_unpack_msg),
+    cmocka_unit_test_setup_teardown (test_unpack_ipport,      setup_unpack_msg, teardown_unpack_msg),
   };
   return cmocka_run_group_tests_name("SKINNY message", tests, NULL, NULL);
 }

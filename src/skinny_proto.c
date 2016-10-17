@@ -55,7 +55,13 @@ apr_status_t callflaw_register (apr_pool_t *mp,
   LOG_VERB("--> Register device %s", opts->mac);
   rv = apr_socket_send (sock, buf, &size);
   LOG_DBG("Sent packet REGISTER with length %d, returned: %d", size, rv);
-  for(;;) {
+
+  size = create_msg_ipport (mp, &buf);
+  LOG_VERB("--> IP port");
+  rv = apr_socket_send (sock, buf, &size);
+  LOG_DBG("Sent packet IPPORT with length %d, returned: %d", size, rv);
+
+  for (;;) {
     char inbuf[SKINNY_MAX_PACK_LEN];
     char *ptr_buf;
     struct skinny_message *msg = (struct skinny_message*) apr_palloc (mp, sizeof(struct skinny_message));
@@ -63,16 +69,23 @@ apr_status_t callflaw_register (apr_pool_t *mp,
     apr_size_t len = sizeof(inbuf);
     rv = apr_socket_recv(sock, ptr_buf, &len);
     mid = unpack_message (ptr_buf, msg);
+
     if (mid == MID_REGISTER_ACK) {
       LOG_VERB("<-- Register ACK");
+
     } else if (mid == MID_REGISTER_REJECT) {
+
       LOG_VERB("<-- Register Rejected");
   break;
+
     } else if (mid == MID_SETLAMP) {
+
       LOG_VERB("<-- Set Lamp %s for %s",
           lamp_mode_to_str (msg->data->setlamp.lampMode),
           btn_def_to_str (msg->data->setlamp.stimulus));
+
     } else if (mid == MID_CAPABILITIES_REQ) {
+
       LOG_VERB("<-- Capabilities request");
       size = create_msg_cap_res (mp, &buf);
       LOG_VERB("--> Capabilities response");
@@ -82,13 +95,20 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       size = create_msg_btn_tmpl_req (mp, &buf);
       rv = apr_socket_send (sock, buf, &size);
       LOG_DBG("Sent packet BUTTON TEMPLATE REQ with length %d, returned: %d", size, rv);
+
     } else if (mid == MID_INVALID) {
+
       LOG_ERR("Unrecognized or unsupported message : %d",
           ((struct skinny_header *)inbuf)->msg_id );
       rv = APR_ENOTIMPL;
   break;
+
     } else if (mid == MID_BUTTON_TMPL ) {
-      LOG_VERB("<-- Device buttons template");
+      LOG_VERB("<-- Device buttons template. Total buttons: %d", msg->data->btn_tmpl.btn_total);
+      for (int i = 0; i < msg->data->btn_tmpl.btn_total; i++) {
+        LOG_VERB("    [Button #%d] : %s", (i + 1),
+            btn_def_to_str(msg->data->btn_tmpl.btn[i].definition));
+      }
       rv = APR_SUCCESS;
   //break;
     }
@@ -96,7 +116,6 @@ apr_status_t callflaw_register (apr_pool_t *mp,
 
   return rv;
 }
-
 
 unsigned long sock_local_ip(apr_socket_t *sock)
 {

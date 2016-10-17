@@ -154,6 +154,7 @@ struct message_reset {
 };
 
 union skinny_message_data {
+  struct message_ipport ipport;
   struct message_register reg;
   struct message_capabilities_res cap_res;
   struct message_register_ack reg_ack;
@@ -193,6 +194,14 @@ skinny_msg_id unpack_message (const char *packet, struct skinny_message *msg);
  * @return Packet identifier
  */
 skinny_msg_id unpack_keepalive (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract IPPORT message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_ipport (const char *packet, struct skinny_message *msg);
 
 /**
  * Extract REGISTER message from the skinny packet.
@@ -273,6 +282,16 @@ skinny_msg_id unpack_reset (const char *packet, struct skinny_message *msg);
  * @return Packet identifier
  */
 skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *msg);
+
+/**
+ * Create Skinny IP PORT message as char buffer ready to send with socket.
+ * @param mp      Memory pool
+ * @param buf     Register packet buffer
+ * @param opts    Application options
+ * @param ip_addr IP address
+ * @return Packet size
+ */
+apr_size_t create_msg_ipport (apr_pool_t *mp, char **buf);
 
 /**
  * Create Skinny register message as char buffer ready to send with socket.

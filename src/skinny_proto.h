@@ -55,4 +55,3 @@ apr_status_t callflaw_register(apr_pool_t *mp, skinnycat_opts *opts, apr_socket_
 unsigned long sock_local_ip(apr_socket_t *sock);
 
 #endif
-
