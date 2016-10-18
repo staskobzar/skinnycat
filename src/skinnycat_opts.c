@@ -177,6 +177,8 @@ action_id action_id_for_method(const char *method)
   action_id aid = -1;
     if (apr_strnatcasecmp(method, "REGISTER") == 0) {
       aid = AID_REGISTER;
+    } else if (apr_strnatcasecmp(method, "KEEPALIVE") == 0) {
+      aid = AID_KEEPALIVE;
     }
   return aid;
 }

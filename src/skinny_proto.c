@@ -36,6 +36,8 @@ apr_status_t skinny_uac_run (apr_pool_t *mp,
     case AID_REGISTER:
       rv = callflaw_register (mp, opts, sock);
       break;
+    case AID_KEEPALIVE:
+      rv = callflaw_keepalive (mp, opts, sock);
     default:
       rv = APR_BADARG;
   }
@@ -114,7 +116,6 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       rv = apr_socket_send (sock, buf, &size);
       LOG_DBG("Sent packet DATETIME REQUEST with length %d, returned: %d", size, rv);
       rv = APR_SUCCESS;
-  //break;
 
     } else if (mid == MID_CLEAR_PROMPT) {
 
@@ -141,6 +142,41 @@ apr_status_t callflaw_register (apr_pool_t *mp,
     }
   }
 
+  return rv;
+}
+
+apr_status_t callflaw_keepalive (apr_pool_t *mp,
+                                skinnycat_opts *opts,
+                                apr_socket_t *sock)
+{
+  apr_status_t rv = APR_SUCCESS;
+  apr_size_t size = SKINNY_HEADER_LEN;
+  skinny_msg_id mid;
+  char inbuf[SKINNY_MAX_PACK_LEN];
+  char *buf;
+  struct skinny_message *msg = (struct skinny_message*) apr_palloc (mp, sizeof(struct skinny_message));
+  struct skinny_header hdr = {
+    .msg_id = MID_KEEPALIVE,
+    .length = 4,
+    .version = 0
+  };
+
+  LOG_DBG("KEEPALIVE message create and send.");
+  buf = (char*)&hdr;
+  LOG_VERB("--> Keepalive message");
+  rv = apr_socket_send (sock, buf, &size);
+  LOG_DBG("Sent packet KEEPALIVE with length %d, returned: %d", size, rv);
+  size = sizeof(inbuf);
+  buf = inbuf;
+  rv = apr_socket_recv(sock, buf, &size);
+  LOG_DBG("Received packet with length %d, returned: %d", size, rv);
+  mid = unpack_message (buf, msg);
+  if (mid == MID_KEEPALIVE_ACK) {
+    LOG_VERB("<-- Received KEEPALIVE ACK");
+  } else {
+    LOG_ERR("Invalid or unexpected response.");
+    rv = APR_ENOTIMPL;
+  }
   return rv;
 }
 

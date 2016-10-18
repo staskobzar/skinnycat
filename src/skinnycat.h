@@ -58,6 +58,7 @@ extern int LOGLVL;
  */
 enum action_id_e {
   AID_REGISTER = 1,
+  AID_KEEPALIVE,
 };
 typedef enum action_id_e action_id;
 

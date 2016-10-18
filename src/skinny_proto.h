@@ -48,6 +48,15 @@ apr_status_t skinny_uac_run(apr_pool_t *mp, skinnycat_opts *opts, apr_socket_t *
 apr_status_t callflaw_register(apr_pool_t *mp, skinnycat_opts *opts, apr_socket_t *sock);
 
 /**
+ * Keepalive call flow
+ * @param mp    APR memory pool pointer
+ * @param opts  Application configuration options
+ * @param sock  Socket
+ * @return APR status
+ */
+apr_status_t callflaw_keepalive(apr_pool_t *mp, skinnycat_opts *opts, apr_socket_t *sock);
+
+/**
  * Get local IP from socket.
  * @param sock  APR socket
  * @return IP as long integer
