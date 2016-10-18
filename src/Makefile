@@ -5,7 +5,7 @@
 #
 
 APR_LIBS := $(shell pkg-config --libs apr-1)
-CFLAGS   += -g -Wall $(shell pkg-config --cflags apr-1)
+CFLAGS   += -g -Wall -std=c99 $(shell pkg-config --cflags apr-1)
 LDFLAGS  += $(APR_LIBS)
 OBJECTS  := main.o skinnycat_opts.o skinny_proto.o skinny_msg.o
 

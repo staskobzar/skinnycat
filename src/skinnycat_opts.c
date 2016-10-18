@@ -157,6 +157,9 @@ static void usage (const char *program,
     if (opts->has_arg) printf("VALUE");
     printf("\n");
     printf("        %s\n", opts->description);
+    if (opts->optch == 'M') {
+      printf("        Available methods: REGISTER, KEEPALIVE\n");
+    }
     printf("\n");
     opts++;
   }
