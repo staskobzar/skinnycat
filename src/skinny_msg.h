@@ -61,6 +61,9 @@ typedef enum {
   MID_REGISTER_REJECT     = 0x009d,
   MID_RESET               = 0x009f,
   MID_KEEPALIVE_ACK       = 0x0100,
+  MID_CLEAR_PROMPT        = 0x0113,
+  MID_DISPLAY_NOTIFY      = 0x0143,
+  MID_DISPLAY_DYN_PROMPT  = 0x0145,
 } skinny_msg_id;
 
 enum skinny_lamp_mode{
@@ -151,7 +154,7 @@ struct message_buttons_template {
 struct message_def_datetime {
   uint32_t year;
   uint32_t month;
-  uint32_t week;
+  uint32_t day;
   uint32_t week_day;
   uint32_t hour;
   uint32_t minute;
@@ -168,6 +171,23 @@ struct message_reset {
   uint32_t reset_type;
 };
 
+struct message_clear_prompt {
+  uint32_t line_inst;
+  uint32_t call_ref;
+};
+
+struct message_display_dyn_prompt {
+  uint32_t timeout;
+  uint32_t line_inst;
+  uint32_t call_ref;
+  unsigned char prompt_status[2];
+};
+
+struct message_display_notify {
+  uint32_t timeout;
+  unsigned char msg[11];
+};
+
 union skinny_message_data {
   struct message_ipport ipport;
   struct message_register reg;
@@ -178,6 +198,9 @@ union skinny_message_data {
   struct message_def_datetime dtime;
   struct message_register_reject reg_reject;
   struct message_reset reset;
+  struct message_clear_prompt clear_prmt;
+  struct message_display_notify notify;
+  struct message_display_dyn_prompt dynprompt;
 };
 
 struct skinny_message {
@@ -314,6 +337,30 @@ skinny_msg_id unpack_reset (const char *packet, struct skinny_message *msg);
  * @return Packet identifier
  */
 skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract CLEAR PROMPT message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_clear_prompt (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract DISPALY DYNAMIC PROMPT message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_display_notify (const char *packet, struct skinny_message *msg);
+
+/**
+ * Extract DISPALY DYNAMIC PROMPT message from the skinny packet.
+ * @param packet    Raw packet
+ * @param message   Skinny message structure
+ * @return Packet identifier
+ */
+skinny_msg_id unpack_display_dyn_prompt (const char *packet, struct skinny_message *msg);
 
 /**
  * Create Skinny IP PORT message as char buffer ready to send with socket.

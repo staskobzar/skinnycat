@@ -96,6 +96,20 @@ const char raw_define_datetime[] = { 0x28,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
   0x01,0x00,0x00,0x00, 0x0e,0x00,0x00,0x00, 0x34,0x00,0x00,0x00, 0x22,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00, 0xf2,0x78,0xc8,0x57};
 
+/* RAW CLEAR PROMPT */
+const char raw_clear_prompt[] = { 0x0c,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+  0x13,0x01,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00 };
+
+/* RAW CLEAR PROMPT */
+const char raw_dyn_prompt[] = { 0x14,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+  0x45,0x01,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+  0x80,0x13,0x00,0x00 };
+
+/* RAW DISPLAY NOTIFY */
+const char raw_display_notify[] = { 0x14,0x00,0x00,0x00, 0x00,0x00,0x00,0x00,
+  0x43,0x01,0x00,0x00, 0x05,0x00,0x00,0x00, 0x41,0x73,0x74,0x65, 0x72,0x69,0x73,0x6b,
+  0x20,0x80,0x18,0x00 };
+
 /* END: Raw packets for testing. */
 
 /*
@@ -265,6 +279,27 @@ static void test_unpack_btn_tmpl (void **state)
   assert_int_equal(msg->data->btn_tmpl.btn[1].definition, SKINNY_BUTTON_SPEED_DIAL);
 }
 
+static void test_unpack_display_notify (void **state)
+{
+  struct skinny_message *msg = *state;
+  assert_int_equal(unpack_message(raw_display_notify, msg), MID_DISPLAY_NOTIFY);
+  assert_int_equal(msg->data->notify.timeout, 5);
+}
+
+static void test_unpack_clear_prompt (void **state)
+{
+  (void)*state;
+  struct skinny_message msg;
+  assert_int_equal(unpack_message(raw_clear_prompt, &msg), MID_CLEAR_PROMPT);
+}
+
+static void test_unpack_display_dyn_prompt (void **state)
+{
+  (void)*state;
+  struct skinny_message msg;
+  assert_int_equal(unpack_message(raw_dyn_prompt, &msg), MID_DISPLAY_DYN_PROMPT);
+}
+
 /* ===================== */
 /* create messages tests */
 /* ===================== */
@@ -349,6 +384,9 @@ int main(int argc, const char *argv[])
     cmocka_unit_test_setup_teardown (test_unpack_ipport,      setup_unpack_msg, teardown_unpack_msg),
     cmocka_unit_test (test_unpack_datetime_req),
     cmocka_unit_test_setup_teardown (test_unpack_def_datetime, setup_unpack_msg, teardown_unpack_msg),
+    cmocka_unit_test (test_unpack_clear_prompt),
+    cmocka_unit_test_setup_teardown (test_unpack_display_dyn_prompt, setup_unpack_msg, teardown_unpack_msg),
+    cmocka_unit_test_setup_teardown (test_unpack_display_notify, setup_unpack_msg, teardown_unpack_msg),
   };
   return cmocka_run_group_tests_name("SKINNY message", tests, NULL, NULL);
 }

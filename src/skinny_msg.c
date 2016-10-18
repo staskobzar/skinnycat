@@ -45,6 +45,9 @@ struct skinny_msg_list messages[] = {
   { MID_REGISTER_REJECT,  unpack_register_reject },
   { MID_RESET,            unpack_reset },
   { MID_KEEPALIVE_ACK,    unpack_keepalive_ack },
+  { MID_CLEAR_PROMPT,     unpack_clear_prompt },
+  { MID_DISPLAY_NOTIFY,   unpack_display_notify },
+  { MID_DISPLAY_DYN_PROMPT, unpack_display_dyn_prompt },
   /* sentinel */
   { MID_INVALID,          NULL }
 };
@@ -198,6 +201,42 @@ skinny_msg_id unpack_keepalive_ack (const char *packet, struct skinny_message *m
   (void)msg;
   LOG_DBG("Unpack message KEEPALIVE_ACK");
   return MID_KEEPALIVE_ACK;
+}
+
+skinny_msg_id unpack_clear_prompt (const char *packet, struct skinny_message *msg)
+{
+  (void)msg;
+  LOG_DBG("Unpack message CLEAR PROMPT");
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_clear_prompt *data = (struct message_clear_prompt *) packet;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
+}
+
+skinny_msg_id unpack_display_dyn_prompt (const char *packet, struct skinny_message *msg)
+{
+  (void)msg;
+  LOG_DBG("Unpack message DISPLAY DYNAMIC PROMPT STATUS");
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_display_dyn_prompt *data = (struct message_display_dyn_prompt *) packet;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
+}
+
+skinny_msg_id unpack_display_notify (const char *packet, struct skinny_message *msg)
+{
+  (void)msg;
+  LOG_DBG("Unpack message DISPLAY NOTIFY");
+  struct skinny_header *hdr =  (struct skinny_header *) packet;
+  msg->header = hdr;
+  packet += SKINNY_HEADER_LEN;
+  struct message_display_notify *data = (struct message_display_notify *) packet;
+  msg->data = (union skinny_message_data*) data;
+  return hdr->msg_id;
 }
 
 apr_size_t create_msg_register (apr_pool_t *mp,

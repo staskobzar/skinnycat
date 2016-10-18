@@ -81,6 +81,12 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       LOG_VERB("<-- Register Rejected");
   break;
 
+    } else if (mid == MID_DEFINE_DATETIME) {
+
+      LOG_VERB("<-- DateTime response: %d-%d-%d %d:%d:%d",
+          msg->data->dtime.year, msg->data->dtime.month, msg->data->dtime.day,
+          msg->data->dtime.hour, msg->data->dtime.minute,msg->data->dtime.sec );
+
     } else if (mid == MID_SETLAMP) {
 
       LOG_VERB("<-- Set Lamp %s for %s",
@@ -96,14 +102,8 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       LOG_DBG("Sent packet CAPABILITIES RES with length %d, returned: %d", size, rv);
       LOG_VERB("--> Button template request");
 
-    } else if (mid == MID_INVALID) {
-
-      LOG_ERR("Unrecognized or unsupported message : %d",
-          ((struct skinny_header *)inbuf)->msg_id );
-      rv = APR_ENOTIMPL;
-  break;
-
     } else if (mid == MID_BUTTON_TMPL ) {
+
       LOG_VERB("<-- Device buttons template. Total buttons: %d", msg->data->btn_tmpl.btn_total);
       for (int i = 0; i < msg->data->btn_tmpl.btn_total; i++) {
         LOG_VERB("    [Button #%d] : %s", (i + 1),
@@ -115,6 +115,29 @@ apr_status_t callflaw_register (apr_pool_t *mp,
       LOG_DBG("Sent packet DATETIME REQUEST with length %d, returned: %d", size, rv);
       rv = APR_SUCCESS;
   //break;
+
+    } else if (mid == MID_CLEAR_PROMPT) {
+
+      LOG_VERB("<-- Clear prompt message.");
+
+    } else if (mid == MID_DISPLAY_DYN_PROMPT) {
+
+      LOG_VERB("<-- Display dynamic prompt status id: 0x%x 0x%x.",
+          msg->data->dynprompt.prompt_status[0],
+          msg->data->dynprompt.prompt_status[1]);
+
+    } else if (mid == MID_DISPLAY_NOTIFY) {
+
+      LOG_VERB("<-- Display notify: %s.",
+          msg->data->notify.msg);
+
+    } else if (mid == MID_INVALID) {
+
+      LOG_ERR("Unrecognized or unsupported message : %d",
+          ((struct skinny_header *)inbuf)->msg_id );
+      rv = APR_ENOTIMPL;
+  break;
+
     }
   }
 
