@@ -154,8 +154,8 @@ struct message_buttons_template {
 struct message_def_datetime {
   uint32_t year;
   uint32_t month;
-  uint32_t day;
   uint32_t week_day;
+  uint32_t day;
   uint32_t hour;
   uint32_t minute;
   uint32_t sec;
@@ -185,7 +185,7 @@ struct message_display_dyn_prompt {
 
 struct message_display_notify {
   uint32_t timeout;
-  unsigned char msg[11];
+  unsigned char msg[2000];
 };
 
 union skinny_message_data {
