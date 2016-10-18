@@ -80,7 +80,7 @@ apr_status_t callflaw_register (apr_pool_t *mp,
 
     } else if (mid == MID_REGISTER_REJECT) {
 
-      LOG_VERB("<-- Register Rejected");
+      LOG_VERB("<-- Register Rejected: %s", msg->data->reg_reject.error_text);
   break;
 
     } else if (mid == MID_DEFINE_DATETIME) {
