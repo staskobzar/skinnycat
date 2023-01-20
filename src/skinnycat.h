@@ -32,31 +32,33 @@
 #include <apr_network_io.h>
 #include <apr_strings.h>
 
-#define LEN_MAC     16
-#define LEN_HOST    40
-#define LEN_METHOD  32
+#define LEN_MAC 16
+#define LEN_HOST 40
+#define LEN_METHOD 32
 #define DEFAULT_TIMEOUT (APR_USEC_PER_SEC * 10) // default socket timeout is 10 sec
 
 typedef unsigned char bool;
 #define false 0
-#define true  (!false)
+#define true (!false)
 
-enum {
+enum
+{
   LOG_LVL_DEBUG = 1,
-  LOG_LVL_VERB  = 2,
+  LOG_LVL_VERB = 2,
   LOG_LVL_ERROR = 4
 };
 
 extern int LOGLVL;
 
-#define LOG_DBG(...)  log_print(__FILE__, __LINE__, LOG_LVL_DEBUG, 1, __VA_ARGS__)
-#define LOG_VERB(...) log_print(__FILE__, __LINE__, LOG_LVL_VERB,  1, __VA_ARGS__)
-#define LOG_ERR(...)  log_print(__FILE__, __LINE__, LOG_LVL_ERROR, 2, __VA_ARGS__)
+#define LOG_DBG(...) log_print(__FILE__, __LINE__, LOG_LVL_DEBUG, 1, __VA_ARGS__)
+#define LOG_VERB(...) log_print(__FILE__, __LINE__, LOG_LVL_VERB, 1, __VA_ARGS__)
+#define LOG_ERR(...) log_print(__FILE__, __LINE__, LOG_LVL_ERROR, 2, __VA_ARGS__)
 
 /*
  * Actions IDs
  */
-enum action_id_e {
+enum action_id_e
+{
   AID_REGISTER = 1,
   AID_KEEPALIVE,
 };
@@ -65,7 +67,8 @@ typedef enum action_id_e action_id;
 /**
  * Structure to store configuration parameters
  */
-struct skinnycat_opts_s {
+struct skinnycat_opts_s
+{
   /** MAC address of the phone. If not present in cli arguments will be generated. */
   char mac[LEN_MAC];
   /** Destination hostname or IP address. */
@@ -93,7 +96,7 @@ typedef struct skinnycat_opts_s skinnycat_opts;
  * @param opts  Options structure
  * @return      APR status
  */
-apr_status_t init_conf_options (skinnycat_opts *opts);
+apr_status_t init_conf_options(skinnycat_opts *opts);
 
 /**
  * Parses the options, initialize and set options structure.
@@ -103,7 +106,7 @@ apr_status_t init_conf_options (skinnycat_opts *opts);
  * @param argv  Array of arguments
  * @return      APR status
  */
-apr_status_t parse_opts (apr_pool_t **mp, skinnycat_opts *opts, int argc, const char *argv[]);
+apr_status_t parse_opts(apr_pool_t **mp, skinnycat_opts *opts, int argc, const char *argv[]);
 
 /**
  * Extract action ID from method name.
@@ -121,6 +124,6 @@ action_id action_id_for_method(const char *method);
  * @param fmt   Formatted string
  * @param ...   Formatted string params list
  */
-void log_print (char *file, int line, int level, int fd, char *fmt, ...);
+void log_print(char *file, int line, int level, int fd, char *fmt, ...);
 
 #endif
